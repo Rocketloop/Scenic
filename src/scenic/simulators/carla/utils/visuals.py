@@ -244,42 +244,42 @@ class CollisionSensor(object):
 # ==============================================================================
 
 class CameraManager(object):
-	def __init__(self, world, actor, hud, fps=50, video_output_path=None):
-		self.sensor = None
-		self._surface = None
-		self._actor = actor
-		self.output_path = video_output_path
-		self.recording = video_output_path is not None
-		self._hud = hud
-		self.images = []
-		self._camera_transforms = [
-			carla.Transform(carla.Location(x=-5.5, z=2.8), carla.Rotation(pitch=-15)),
-			carla.Transform(carla.Location(x=1.6, z=1.7))]
-		self._transform_index = 1
-		self._sensors = [
-			['sensor.camera.rgb', cc.Raw, 'Camera RGB'],
-			['sensor.camera.depth', cc.Raw, 'Camera Depth (Raw)'],
-			['sensor.camera.depth', cc.Depth, 'Camera Depth (Gray Scale)'],
-			['sensor.camera.depth', cc.LogarithmicDepth, 'Camera Depth (Logarithmic Gray Scale)'],
-			['sensor.camera.semantic_segmentation', cc.Raw, 'Camera Semantic Segmentation (Raw)'],
-			['sensor.camera.semantic_segmentation', cc.CityScapesPalette,
-			 'Camera Semantic Segmentation (CityScapes Palette)'],
-			['sensor.lidar.ray_cast', None, 'Lidar (Ray-Cast)']]
-		self._world = world
-		self.video_writer = None
-		if self.recording:
-			self.video_writer = iio.get_writer(video_output_path, fps=fps, codec='libx264', quality=10)
-		bp_library = self._world.get_blueprint_library()
-		for item in self._sensors:
-			bp = bp_library.find(item[0])
-			if item[0].startswith('sensor.camera'):
-				bp.set_attribute('image_size_x', str(hud.dim[0]))
-				bp.set_attribute('image_size_y', str(hud.dim[1]))
-			item.append(bp)
-		self._index = None
+    def __init__(self, world, actor, hud, fps=50, video_output_path=None):
+        self.sensor = None
+        self._surface = None
+        self._actor = actor
+        self.output_path = video_output_path
+        self.recording = video_output_path is not None
+        self._hud = hud
+        self.images = []
+        self._camera_transforms = [
+            carla.Transform(carla.Location(x=-5.5, z=2.8), carla.Rotation(pitch=-15)),
+            carla.Transform(carla.Location(x=1.6, z=1.7))]
+        self._transform_index = 1
+        self._sensors = [
+            ['sensor.camera.rgb', cc.Raw, 'Camera RGB'],
+            ['sensor.camera.depth', cc.Raw, 'Camera Depth (Raw)'],
+            ['sensor.camera.depth', cc.Depth, 'Camera Depth (Gray Scale)'],
+            ['sensor.camera.depth', cc.LogarithmicDepth, 'Camera Depth (Logarithmic Gray Scale)'],
+            ['sensor.camera.semantic_segmentation', cc.Raw, 'Camera Semantic Segmentation (Raw)'],
+            ['sensor.camera.semantic_segmentation', cc.CityScapesPalette,
+             'Camera Semantic Segmentation (CityScapes Palette)'],
+            ['sensor.lidar.ray_cast', None, 'Lidar (Ray-Cast)']]
+        self._world = world
+        self.video_writer = None
+        if self.recording:
+            self.video_writer = iio.get_writer(video_output_path, fps=fps, codec='libx264', quality=10)
+        bp_library = self._world.get_blueprint_library()
+        for item in self._sensors:
+            bp = bp_library.find(item[0])
+            if item[0].startswith('sensor.camera'):
+                bp.set_attribute('image_size_x', str(hud.dim[0]))
+                bp.set_attribute('image_size_y', str(hud.dim[1]))
+            item.append(bp)
+        self._index = None
 
-	def toggle_camera(self):
-		self.set_transform((self._transform_index + 1) % len(self._camera_transforms))
+    def toggle_camera(self):
+        self.set_transform((self._transform_index + 1) % len(self._camera_transforms))
 
     def set_transform(self, idx):
         self._transform_index = idx
@@ -306,39 +306,42 @@ class CameraManager(object):
         if self._surface is not None:
             display.blit(self._surface, (0, 0))
 
-	@staticmethod
-	def _parse_image(weak_self, image):
-		self = weak_self()
-		if not self:
-			return
-		if self._sensors[self._index][0].startswith('sensor.lidar'):
-			points = np.frombuffer(image.raw_data, dtype=np.dtype('f4'))
-			points = np.reshape(points, (int(points.shape[0] / 3), 3))
-			lidar_data = np.array(points[:, :2])
-			lidar_data *= min(self._hud.dim) / 100.0
-			lidar_data += (0.5 * self._hud.dim[0], 0.5 * self._hud.dim[1])
-			lidar_data = np.fabs(lidar_data)
-			lidar_data = lidar_data.astype(np.int32)
-			lidar_data = np.reshape(lidar_data, (-1, 2))
-			lidar_img_size = (self._hud.dim[0], self._hud.dim[1], 3)
-			lidar_img = np.zeros(lidar_img_size)
-			lidar_img[tuple(lidar_data.T)] = (255, 255, 255)
-			self._surface = pygame.surfarray.make_surface(lidar_img)
-		else:
-			image.convert(self._sensors[self._index][1])
-			array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
-			array = np.reshape(array, (image.height, image.width, 4))
-			array = array[:, :, :3]
-			array = array[:, :, ::-1]
-			self._surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
-			if self.recording:
-				try:
-					self.video_writer.append_data(array.swapaxes(0, 1))
-				except Exception as e:
-					print(e)
-		self.images.append(image)
+    @staticmethod
+    def _parse_image(weak_self, image):
+        self = weak_self()
+        if not self:
+            return
+        if self._sensors[self._index][0].startswith('sensor.lidar'):
+            points = np.frombuffer(image.raw_data, dtype=np.dtype('f4'))
+            points = np.reshape(points, (int(points.shape[0] / 3), 3))
+            lidar_data = np.array(points[:, :2])
+            lidar_data *= min(self._hud.dim) / 100.0
+            lidar_data += (0.5 * self._hud.dim[0], 0.5 * self._hud.dim[1])
+            lidar_data = np.fabs(lidar_data)
+            lidar_data = lidar_data.astype(np.int32)
+            lidar_data = np.reshape(lidar_data, (-1, 2))
+            lidar_img_size = (self._hud.dim[0], self._hud.dim[1], 3)
+            lidar_img = np.zeros(lidar_img_size)
+            lidar_img[tuple(lidar_data.T)] = (255, 255, 255)
+            self._surface = pygame.surfarray.make_surface(lidar_img)
+        else:
+            image.convert(self._sensors[self._index][1])
+            array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
+            array = np.reshape(array, (image.height, image.width, 4))
+            array = array[:, :, :3]
+            array = array[:, :, ::-1]
+            self._surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
+            if self.recording:
+                try:
+                    self.video_writer.append_data(array.swapaxes(0, 1))
+                except Exception as e:
+                    print(e)
+        self.images.append(image)
 
     def destroy_sensor(self):
         if self.sensor is not None:
             self.sensor.stop()
             self.sensor.destroy()
+
+    def __del__(self):
+        self.video_writer.close()
