@@ -28,6 +28,7 @@ import math
 import weakref
 import pygame
 import numpy as np
+import imageio as iio
 import carla
 from carla import ColorConverter as cc
 
@@ -242,10 +243,12 @@ class CollisionSensor(object):
 # ==============================================================================
 
 class CameraManager(object):
-	def __init__(self, world, actor, hud):
+	def __init__(self, world, actor, hud, fps=50, video_output_path=None):
 		self.sensor = None
 		self._surface = None
 		self._actor = actor
+		self.output_path = video_output_path
+		self.recording = video_output_path is not None
 		self._hud = hud
 		self.images = []
 		self._camera_transforms = [
@@ -262,6 +265,9 @@ class CameraManager(object):
 			 'Camera Semantic Segmentation (CityScapes Palette)'],
 			['sensor.lidar.ray_cast', None, 'Lidar (Ray-Cast)']]
 		self._world = world
+		self.video_writer = None
+		if self.recording:
+			self.video_writer = iio.get_writer(video_output_path, fps=fps, codec='libx264', quality=10)
 		bp_library = self._world.get_blueprint_library()
 		for item in self._sensors:
 			bp = bp_library.find(item[0])
@@ -272,7 +278,7 @@ class CameraManager(object):
 		self._index = None
 
 	def toggle_camera(self):
-		set_transform((self._transform_index + 1) % len(self._camera_transforms))
+		self.set_transform((self._transform_index + 1) % len(self._camera_transforms))
 
 	def set_transform(self, idx):
 		self._transform_index = idx
@@ -324,6 +330,11 @@ class CameraManager(object):
 			array = array[:, :, :3]
 			array = array[:, :, ::-1]
 			self._surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
+			if self.recording:
+				try:
+					self.video_writer.append_data(array.swapaxes(0, 1))
+				except Exception as e:
+					print(e)
 		self.images.append(image)
 
 	def destroy_sensor(self):
