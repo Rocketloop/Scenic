@@ -29,7 +29,8 @@ class CarlaSimulator(DrivingSimulator):
     """Implementation of `Simulator` for CARLA."""
 
     def __init__(self, carla_map, map_path, address='127.0.0.1', port=2000, timeout=10,
-                 render=True, record='', timestep=0.1, traffic_manager_port=None, video_output_path=None):
+                 render=True, record='', timestep=0.1, resolution='1280x720', traffic_manager_port=None,
+                 video_output_path=None):
         super().__init__()
         verbosePrint(f'Connecting to CARLA on port {port}')
         self.client = carla.Client(address, port)
@@ -43,6 +44,7 @@ class CarlaSimulator(DrivingSimulator):
             else:
                 raise RuntimeError('CARLA only supports OpenDrive maps')
         self.timestep = timestep
+        self.resolution = resolution
 
         if traffic_manager_port is None:
             traffic_manager_port = port + 6000
@@ -65,7 +67,8 @@ class CarlaSimulator(DrivingSimulator):
         self.scenario_number += 1
         return CarlaSimulation(scene, self.client, self.tm, self.timestep,
                                render=self.render, record=self.record,
-                               scenario_number=self.scenario_number, video_output_path=self.video_output_path,
+                               scenario_number=self.scenario_number,
+                               resolution=self.resolution, video_output_path=self.video_output_path,
                                verbosity=verbosity)
 
     def destroy(self):
@@ -79,13 +82,16 @@ class CarlaSimulator(DrivingSimulator):
 
 
 class CarlaSimulation(DrivingSimulation):
-    def __init__(self, scene, client, tm, timestep, render, record, scenario_number, video_output_path, verbosity=0):
+    def __init__(self, scene, client, tm, timestep, render, record, scenario_number,
+                 resolution, video_output_path, verbosity=0):
         super().__init__(scene, timestep=timestep, verbosity=verbosity)
         self.client = client
         self.world = self.client.get_world()
         self.map = self.world.get_map()
         self.blueprintLib = self.world.get_blueprint_library()
         self.tm = tm
+        self.resolution = resolution
+        width, height = [int(x) for x in resolution.split('x')]
 
         weather = scene.params.get("weather")
         if weather is not None:
@@ -103,7 +109,7 @@ class CarlaSimulation(DrivingSimulation):
         self.scenario_number = scenario_number
         self.video_output_path = video_output_path
         if self.render:
-            self.displayDim = (1280, 720)
+            self.displayDim = (width, height)
             self.displayClock = pygame.time.Clock()
             self.camTransform = 0
             pygame.init()
