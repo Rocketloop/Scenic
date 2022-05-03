@@ -333,7 +333,7 @@ class CameraManager(object):
             self._surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
             if self.recording:
                 try:
-                    self.video_writer.append_data(array.swapaxes(0, 1))
+                    self.video_writer.append_data(array)
                 except Exception as e:
                     print(e)
         self.images.append(image)
@@ -344,4 +344,5 @@ class CameraManager(object):
             self.sensor.destroy()
 
     def __del__(self):
-        self.video_writer.close()
+        if self.video_writer:
+            self.video_writer.close()
