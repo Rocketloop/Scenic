@@ -26,7 +26,7 @@ import scenic.simulators.carla.utils.visuals as visuals
 class CarlaSimulator(DrivingSimulator):
 	"""Implementation of `Simulator` for CARLA."""
 	def __init__(self, carla_map, map_path, address='127.0.0.1', port=2000, timeout=10,
-				 render=True, record='', timestep=0.1, resolution=5.0, traffic_manager_port=None):
+				 render=True, record='', timestep=0.1, resolution='1280x720', traffic_manager_port=None):
 		super().__init__()
 		verbosePrint(f'Connecting to CARLA on port {port}')
 		self.client = carla.Client(address, port)
@@ -61,8 +61,8 @@ class CarlaSimulator(DrivingSimulator):
 	def createSimulation(self, scene, verbosity=0):
 		self.scenario_number += 1
 		return CarlaSimulation(scene, self.client, self.tm, self.timestep,
-							   render=self.render, record=self.record, resolution = self.resolution,
-							   scenario_number=self.scenario_number, verbosity=verbosity)
+							   render=self.render, record=self.record, scenario_number=self.scenario_number,
+								resolution = self.resolution, verbosity=verbosity)
 
 	def destroy(self):
 		settings = self.world.get_settings()
@@ -75,7 +75,7 @@ class CarlaSimulator(DrivingSimulator):
 
 
 class CarlaSimulation(DrivingSimulation):
-	def __init__(self, scene, client, tm, timestep, render, record, scenario_number,resolution, width, height, verbosity=0):
+	def __init__(self, scene, client, tm, timestep, render, record, scenario_number,resolution,verbosity=0):
 		super().__init__(scene, timestep=timestep, verbosity=verbosity)
 		self.client = client
 		self.world = self.client.get_world()
@@ -83,8 +83,7 @@ class CarlaSimulation(DrivingSimulation):
 		self.blueprintLib = self.world.get_blueprint_library()
 		self.tm = tm
 		self.resolution = resolution
-		self.width = width
-		self.height = height
+		width, height = [int(x) for x in resolution.split('x')]
 		
 		weather = scene.params.get("weather")
 		if weather is not None:
@@ -101,7 +100,6 @@ class CarlaSimulation(DrivingSimulation):
 		self.record = record
 		self.scenario_number = scenario_number
 		if self.render:
-			#self.displayDim = (1280, 720)
 			self.displayDim = (width, height)
 			self.displayClock = pygame.time.Clock()
 			self.camTransform = 0
