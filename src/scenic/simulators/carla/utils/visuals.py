@@ -344,4 +344,5 @@ class CameraManager(object):
             self.sensor.destroy()
 
     def __del__(self):
-        self.video_writer.close()
+        if self.video_writer:
+            self.video_writer.close()
