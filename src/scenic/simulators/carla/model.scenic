@@ -89,6 +89,8 @@ param weather = Uniform(
     'MidRainSunset',
     'HardRainSunset'
 )
+param resolution = '848x480'
+param video_output_path = None
 
 simulator CarlaSimulator(
     carla_map=globalParameters.carla_map,
@@ -98,7 +100,9 @@ simulator CarlaSimulator(
     timeout=int(globalParameters.timeout),
     render=bool(globalParameters.render),
     record=globalParameters.record,
-    timestep=float(globalParameters.timestep)
+    timestep=float(globalParameters.timestep),
+    resolution=globalParameters.resolution,
+    video_output_path=globalParameters.video_output_path
 )
 
 class CarlaActor(DrivingObject):

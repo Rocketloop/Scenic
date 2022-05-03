@@ -1,4 +1,3 @@
-
 ### Top-level functionality of the scenic package as a script:
 ### load a scenario and generate scenes in an infinite loop.
 
@@ -128,6 +127,7 @@ if args.verbosity >= 1:
 if args.simulate:
     simulator = errors.callBeginningScenicTrace(scenario.getSimulator)
 
+
 def generateScene():
     startTime = time.time()
     scene, iterations = errors.callBeginningScenicTrace(
@@ -140,6 +140,7 @@ def generateScene():
             for param, value in scene.params.items():
                 print(f'    Parameter "{param}": {value}')
     return scene, iterations
+
 
 def runSimulation(scene):
     startTime = time.time()
@@ -167,11 +168,13 @@ def runSimulation(scene):
                 print(f'    Record "{name}": {value}')
     return simulation is not None
 
+
 try:
-    if args.gather_stats is None:   # Generate scenes interactively until killed
-        if not args.simulate:   # will need matplotlib to draw scene schematic
+    if args.gather_stats is None:  # Generate scenes interactively until killed
+        if not args.simulate:  # will need matplotlib to draw scene schematic
             import matplotlib
             import matplotlib.pyplot as plt
+
             if matplotlib.get_backend().lower() == 'agg':
                 raise RuntimeError(
                     'need an interactive matplotlib backend to display scenes\n'
@@ -193,7 +196,7 @@ try:
                     scene.show(zoom=args.zoom, block=False)
                     plt.pause(delay)
                     plt.clf()
-    else:   # Gather statistics over the specified number of scenes
+    else:  # Gather statistics over the specified number of scenes
         its = []
         startTime = time.time()
         while len(its) < args.gather_stats:
@@ -202,8 +205,8 @@ try:
         totalTime = time.time() - startTime
         count = len(its)
         print(f'Sampled {len(its)} scenes in {totalTime:.2f} seconds.')
-        print(f'Average iterations/scene: {sum(its)/count}')
-        print(f'Average time/scene: {totalTime/count:.2f} seconds.')
+        print(f'Average iterations/scene: {sum(its) / count}')
+        print(f'Average time/scene: {totalTime / count:.2f} seconds.')
 
 except KeyboardInterrupt:
     pass
@@ -212,5 +215,6 @@ finally:
     if args.simulate:
         simulator.destroy()
 
-def dummy():    # for the 'scenic' entry point to call after importing this module
+
+def dummy():  # for the 'scenic' entry point to call after importing this module
     pass
