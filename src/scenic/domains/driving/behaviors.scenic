@@ -40,7 +40,10 @@ behavior WalkForwardBehavior():
 behavior ConstantThrottleBehavior(x):
     take SetThrottleAction(x)
 
-behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTraffic=False):
+behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTraffic=False,
+                            max_throttle=1.0, max_brake=0.5, max_steer=0.8,
+                            lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
+                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
     """ 
     Follow's the lane on which the vehicle is at, unless the laneToFollow is specified.
     Once the vehicle reaches an intersection, by default, the vehicle will take the straight route.
@@ -79,6 +82,12 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
     
     # instantiate longitudinal and lateral controllers
     _lon_controller, _lat_controller = simulation().getLaneFollowingControllers(self)
+    _lon_controller.Kp = lon_Kp
+    _lon_controller.Kd = lon_Kd
+    _lon_controller.Ki = lon_Ki
+    _lat_controller.Kp = lat_Kp
+    _lat_controller.Kd = lat_Kd
+    _lat_controller.Ki = lat_Ki
 
     while True:
 
@@ -146,12 +155,16 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
         # compute steering : Lateral Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        take RegulatedControlAction(throttle, current_steer_angle, past_steer_angle)
-        past_steer_angle = current_steer_angle
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        take control_action
+        past_steer_angle = control_action.steer
         past_speed = current_speed
 
 
-behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_speed=None):
+behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_speed=None,
+                                  max_throttle=1.0, max_brake=0.5, max_steer=0.8,
+                                  lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
+                                  lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
     """ 
     Follows the given trajectory. The behavior terminates once the end of the trajectory is reached.
 
@@ -172,6 +185,13 @@ behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_spe
 
     # instantiate longitudinal and lateral controllers
     _lon_controller,_lat_controller = simulation().getLaneFollowingControllers(self)
+    _lon_controller.Kp = lon_Kp
+    _lon_controller.Kd = lon_Kd
+    _lon_controller.Ki = lon_Ki
+    _lat_controller.Kp = lat_Kp
+    _lat_controller.Kd = lat_Kd
+    _lat_controller.Ki = lat_Ki
+
     past_steer_angle = 0
     
     if trajectory[-1].maneuvers:
@@ -183,7 +203,10 @@ behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_spe
 
     while True:
         if self in _model.network.intersectionRegion:
-            do TurnBehavior(trajectory_centerline, target_speed=turn_speed)
+            do TurnBehavior(trajectory_centerline, target_speed=turn_speed,
+                            max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer,
+                            lon_Kp=lon_Kp, lon_Kd=lon_Kd, lon_Ki=lon_Ki,
+                            lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki)
 
         if (distance from self to end_intersection) < distanceToEndpoint:
             break
@@ -202,12 +225,16 @@ behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_spe
         # compute steering : Latitudinal Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        take RegulatedControlAction(throttle, current_steer_angle, past_steer_angle)
-        past_steer_angle = current_steer_angle
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        take control_action
+        past_steer_angle = control_action.steer
 
 
 
-behavior TurnBehavior(trajectory, target_speed=6):
+behavior TurnBehavior(trajectory, target_speed=6,
+                      max_throttle=1.0, max_brake=0.5, max_steer=0.8,
+                      lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
+                      lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
     """
     This behavior uses a controller specifically tuned for turning at an intersection.
     This behavior is only operational within an intersection, 
@@ -221,6 +248,12 @@ behavior TurnBehavior(trajectory, target_speed=6):
 
     # instantiate longitudinal and lateral controllers
     _lon_controller, _lat_controller = simulation().getTurningControllers(self)
+    _lon_controller.Kp = lon_Kp
+    _lon_controller.Kd = lon_Kd
+    _lon_controller.Ki = lon_Ki
+    _lat_controller.Kp = lat_Kp
+    _lat_controller.Kd = lat_Kd
+    _lat_controller.Ki = lat_Ki
 
     past_steer_angle = 0
 
@@ -239,11 +272,15 @@ behavior TurnBehavior(trajectory, target_speed=6):
         # compute steering : Latitudinal Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        take RegulatedControlAction(throttle, current_steer_angle, past_steer_angle)
-        past_steer_angle = current_steer_angle
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        take control_action
+        past_steer_angle = control_action.steer
 
 
-behavior LaneChangeBehavior(laneSectionToSwitch, is_oppositeTraffic=False, target_speed=10):
+behavior LaneChangeBehavior(laneSectionToSwitch, is_oppositeTraffic=False, target_speed=10,
+                            max_throttle=1.0, max_brake=0.5, max_steer=0.8,
+                            lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
+                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
 
     """
     is_oppositeTraffic should be specified as True only if the laneSectionToSwitch to has
@@ -267,6 +304,12 @@ behavior LaneChangeBehavior(laneSectionToSwitch, is_oppositeTraffic=False, targe
 
     # instantiate longitudinal and lateral controllers
     _lon_controller, _lat_controller = simulation().getLaneChangingControllers(self)
+    _lon_controller.Kp = lon_Kp
+    _lon_controller.Kd = lon_Kd
+    _lon_controller.Ki = lon_Ki
+    _lat_controller.Kp = lat_Kp
+    _lat_controller.Kd = lat_Kd
+    _lat_controller.Ki = lat_Ki
 
     past_steer_angle = 0
 
@@ -316,5 +359,6 @@ behavior LaneChangeBehavior(laneSectionToSwitch, is_oppositeTraffic=False, targe
         # compute steering : Latitudinal Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        take RegulatedControlAction(throttle, current_steer_angle, past_steer_angle)
-        past_steer_angle = current_steer_angle
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        take control_action
+        past_steer_angle = control_action.steer
