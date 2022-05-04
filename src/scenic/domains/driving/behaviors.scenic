@@ -134,7 +134,7 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
                 do TurnBehavior(trajectory = current_centerline, target_speed = target_speed,
                                 max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer,
                                 lon_Kp=lon_Kp, lon_Kd=lon_Kd, lon_Ki=lon_Ki,
-                                lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki, turn_speed=turn_speed)
+                                lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki)
 
 
         if (end_lane is not None) and (self.position in end_lane) and not intersection_passed:
@@ -209,7 +209,7 @@ behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_spe
             do TurnBehavior(trajectory_centerline, target_speed=turn_speed,
                             max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer,
                             lon_Kp=lon_Kp, lon_Kd=lon_Kd, lon_Ki=lon_Ki,
-                            lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki, turn_speed=turn_speed)
+                            lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki)
 
         if (distance from self to end_intersection) < distanceToEndpoint:
             break
