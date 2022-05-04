@@ -43,7 +43,7 @@ behavior ConstantThrottleBehavior(x):
 behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTraffic=False,
                             max_throttle=1.0, max_brake=0.5, max_steer=0.8,
                             lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
-                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
+                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0, turn_speed=5):
     """ 
     Follow's the lane on which the vehicle is at, unless the laneToFollow is specified.
     Once the vehicle reaches an intersection, by default, the vehicle will take the straight route.
@@ -70,7 +70,7 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
     entering_intersection = False # assumption that the agent is not instantiated within an intersection
     end_lane = None
     original_target_speed = target_speed
-    TARGET_SPEED_FOR_TURNING = 5 # KM/H
+    TARGET_SPEED_FOR_TURNING = turn_speed # KM/H
     TRIGGER_DISTANCE_TO_SLOWDOWN = 10 # FOR TURNING AT INTERSECTIONS
 
     if current_lane.maneuvers != ():
@@ -131,7 +131,10 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
                 in_turning_lane = True
                 target_speed = TARGET_SPEED_FOR_TURNING
 
-                do TurnBehavior(trajectory = current_centerline)
+                do TurnBehavior(trajectory = current_centerline, target_speed = target_speed,
+                                max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer,
+                                lon_Kp=lon_Kp, lon_Kd=lon_Kd, lon_Ki=lon_Ki,
+                                lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki)
 
 
         if (end_lane is not None) and (self.position in end_lane) and not intersection_passed:
@@ -161,7 +164,7 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
         past_speed = current_speed
 
 
-behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_speed=None,
+behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_speed=5,
                                   max_throttle=1.0, max_brake=0.5, max_steer=0.8,
                                   lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
                                   lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
