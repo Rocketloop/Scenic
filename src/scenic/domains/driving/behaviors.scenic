@@ -143,6 +143,12 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
             entering_intersection = False 
             target_speed = original_target_speed
             _lon_controller, _lat_controller = simulation().getLaneFollowingControllers(self)
+            _lon_controller.Kp = lon_Kp
+            _lon_controller.Kd = lon_Kd
+            _lon_controller.Ki = lon_Ki
+            _lat_controller.Kp = lat_Kp
+            _lat_controller.Kd = lat_Kd
+            _lat_controller.Ki = lat_Ki
 
         nearest_line_points = current_centerline.nearestSegmentTo(self.position)
         nearest_line_segment = PolylineRegion(nearest_line_points)
