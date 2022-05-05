@@ -43,7 +43,7 @@ behavior ConstantThrottleBehavior(x):
 behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTraffic=False,
                             max_throttle=1.0, max_brake=0.5, max_steer=0.8,
                             lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
-                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0, turn_speed=5):
+                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0, turn_speed=5, max_steer_per_timestep=0.1):
     """ 
     Follow's the lane on which the vehicle is at, unless the laneToFollow is specified.
     Once the vehicle reaches an intersection, by default, the vehicle will take the straight route.
@@ -134,7 +134,7 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
                 do TurnBehavior(trajectory = current_centerline, target_speed = target_speed,
                                 max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer,
                                 lon_Kp=lon_Kp, lon_Kd=lon_Kd, lon_Ki=lon_Ki,
-                                lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki)
+                                lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki, max_steer_per_timestep=max_steer_per_timestep)
 
 
         if (end_lane is not None) and (self.position in end_lane) and not intersection_passed:
@@ -164,7 +164,8 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
         # compute steering : Lateral Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle,
+                                                max_brake=max_brake, max_steer=max_steer, max_steer_per_timestep=max_steer_per_timestep)
         take control_action
         past_steer_angle = control_action.steer
         past_speed = current_speed
@@ -173,7 +174,7 @@ behavior FollowLaneBehavior(target_speed = 10, laneToFollow=None, is_oppositeTra
 behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_speed=5,
                                   max_throttle=1.0, max_brake=0.5, max_steer=0.8,
                                   lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
-                                  lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
+                                  lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0, max_steer_per_timestep=0.1):
     """ 
     Follows the given trajectory. The behavior terminates once the end of the trajectory is reached.
 
@@ -215,7 +216,7 @@ behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_spe
             do TurnBehavior(trajectory_centerline, target_speed=turn_speed,
                             max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer,
                             lon_Kp=lon_Kp, lon_Kd=lon_Kd, lon_Ki=lon_Ki,
-                            lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki)
+                            lat_Kp=lat_Kp, lat_Kd=lat_Kd, lat_Ki=lat_Ki, max_steer_per_timestep=max_steer_per_timestep)
 
         if (distance from self to end_intersection) < distanceToEndpoint:
             break
@@ -234,7 +235,8 @@ behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_spe
         # compute steering : Latitudinal Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle,
+                                                max_brake=max_brake, max_steer=max_steer, max_steer_per_timestep=max_steer_per_timestep)
         take control_action
         past_steer_angle = control_action.steer
 
@@ -243,7 +245,7 @@ behavior FollowTrajectoryBehavior(target_speed = 10, trajectory = None, turn_spe
 behavior TurnBehavior(trajectory, target_speed=6,
                       max_throttle=1.0, max_brake=0.5, max_steer=0.8,
                       lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
-                      lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
+                      lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0, max_steer_per_timestep=0.1):
     """
     This behavior uses a controller specifically tuned for turning at an intersection.
     This behavior is only operational within an intersection, 
@@ -281,7 +283,8 @@ behavior TurnBehavior(trajectory, target_speed=6,
         # compute steering : Latitudinal Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle,
+                                                max_brake=max_brake, max_steer=max_steer, max_steer_per_timestep=max_steer_per_timestep)
         take control_action
         past_steer_angle = control_action.steer
 
@@ -289,7 +292,7 @@ behavior TurnBehavior(trajectory, target_speed=6,
 behavior LaneChangeBehavior(laneSectionToSwitch, is_oppositeTraffic=False, target_speed=10,
                             max_throttle=1.0, max_brake=0.5, max_steer=0.8,
                             lon_Kp=0.5, lon_Kd=0.1, lon_Ki=0.7,
-                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0):
+                            lat_Kp=0.2, lat_Kd=0.1, lat_Ki=0.0, max_steer_per_timestep=0.1):
 
     """
     is_oppositeTraffic should be specified as True only if the laneSectionToSwitch to has
@@ -368,6 +371,7 @@ behavior LaneChangeBehavior(laneSectionToSwitch, is_oppositeTraffic=False, targe
         # compute steering : Latitudinal Control
         current_steer_angle = _lat_controller.run_step(cte)
 
-        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle, max_brake=max_brake, max_steer=max_steer)
+        control_action = RegulatedControlAction(throttle, current_steer_angle, past_steer_angle, max_throttle=max_throttle,
+                                                max_brake=max_brake, max_steer=max_steer, max_steer_per_timestep=max_steer_per_timestep)
         take control_action
         past_steer_angle = control_action.steer
