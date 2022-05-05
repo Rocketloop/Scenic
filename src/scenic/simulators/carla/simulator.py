@@ -141,7 +141,8 @@ class CarlaSimulation(DrivingSimulation):
                     camIndex = 0
                     camPosIndex = 0
                     self.cameraManager = visuals.CameraManager(self.world, carlaActor, self.hud,
-                                                               video_output_path=self.video_output_path)
+                                                               video_output_path=self.video_output_path,
+                                                               fps=1.0 / timestep)
                     self.cameraManager._transform_index = camPosIndex
                     self.cameraManager.set_sensor(camIndex)
                     self.cameraManager.set_transform(self.camTransform)
