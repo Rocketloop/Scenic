@@ -251,7 +251,6 @@ class CameraManager(object):
         self.output_path = video_output_path
         self.recording = video_output_path is not None
         self._hud = hud
-        self.images = []
         self._camera_transforms = [
             carla.Transform(carla.Location(x=-5.5, z=2.8), carla.Rotation(pitch=-15)),
             carla.Transform(carla.Location(x=1.6, z=1.7))]
@@ -336,7 +335,6 @@ class CameraManager(object):
                     self.video_writer.append_data(array)
                 except Exception as e:
                     print(e)
-        self.images.append(image)
 
     def destroy_sensor(self):
         if self.sensor is not None:
