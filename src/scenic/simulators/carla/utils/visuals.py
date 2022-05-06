@@ -245,7 +245,6 @@ class CollisionSensor(object):
 
 class CameraManager(object):
     def __init__(self, world, actor, hud, fps=50, video_output_path=None):
-        print("FPS:", fps)
         self.sensor = None
         self._surface = None
         self._actor = actor
